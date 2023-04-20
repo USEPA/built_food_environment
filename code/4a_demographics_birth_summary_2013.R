@@ -12,22 +12,11 @@ library(tigris)
 library(readxl)
 library(dplyr)
 
+###############################
+# Source 3_merged_data_2013.R #
+###############################
 
-####################################
-# Read in 2013 NC Birth Cohort csv #
-####################################
-
-nc_2013 <- read_csv("O:/PRIV/IRBData/Birth_Outcomes/Food Environment/analysis/data/clean/base_birth_data/births_2013.csv", NULL)
-
-#################
-# Clean nc_2013 #
-#################
-
-# Change first row to headers
-
-names(nc_2013) <- nc_2013[1,]
-nc_2013 <- nc_2013[-1,]
-names(nc_2013)[names(nc_2013) == 'NA'] <- 'Index'
+source("O:/PRIV/IRBData/Birth_Outcomes/Food Environment/built_food_environment/code/3_merged_data_2013.R")
 
 
 ###################################
@@ -61,7 +50,17 @@ drops <- c("n","count", "ptm_count", "lbw_count")
 # Race #
 ########
 
-data_summary_race <- create_table(nc_2013, RACEGP, EGA, BWT)
+
+data_summary_race<- nc_2013 %>%
+  group_by(RACEGP)%>%
+  summarize(
+    n_total= n(),
+    n_lbw = sum(is_LBW),
+    n_ptm = sum(is_PTM)) %>%
+  mutate (pct_total_pop = n_total / sum(n_total)* 100,
+          pct_lbw = n_lbw/ n_total *100,
+          pct_ptm = n_ptm/ n_total *100 )
+
 
 ## Rename Race variables
 
@@ -183,22 +182,6 @@ data_summary_married <- data_summary_married[ , !(names(data_summary_married) %i
 # Urban/ Rural (RUCA Code) #
 ############################
 
-# Read in RUCA CODE excel sheet
-
-ruca_2010<- read_excel("O:/PRIV/IRBData/Birth_Outcomes/Food Environment/analysis/data/raw/supplementary_information/ruca2010revised.xlsx", sheet= "NC_filter" )
-
-# Clean RUCA CODE sheet
-
-names(ruca_2010)[names(ruca_2010) == 'State-County-Tract FIPS Code (lookup by address at http://www.ffiec.gov/Geocode/)'] <- 'State-County-Tract_FIPS-Code'
-names(ruca_2010)[names(ruca_2010) == 'Secondary RUCA Code, 2010 (see errata)'] <- 'Secondary RUCA Code, 2010'
-
-#Drop unnecessary columns in ruca_2010
-
-ruca_2010<- subset(ruca_2010, select = -c(2,3,5,8,9))
-
-#Join RUCA table with 2013 births
-
-nc_2013_ruca <- merge( nc_2013, ruca_2010, by.x = ("new_gc_2010CT"), by.y = ('State-County-Tract_FIPS-Code') )
 
 # Create RUCA Data Summary Table
 data_summary_ruca <-create_table(nc_2013_ruca, `Secondary RUCA Code, 2010`, EGA, BWT)

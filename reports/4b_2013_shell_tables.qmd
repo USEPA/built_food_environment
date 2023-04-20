@@ -26,7 +26,19 @@ The `echo: false` option disables the printing of code (only output is displayed
 ## 2013 NC Birth Cohort Demographics Table
 
 ```{r}
-2+2
+library(quarto)
+library(DT)
+
+source("O:/PRIV/IRBData/Birth_Outcomes/Food Environment/built_food_environment/code/4a_demographics_birth_summary_2013.R")
+
+```
+
+```{r table-output, results='asis'}
+my_table <- data_summary_race
+DT::datatable(my_table, options = list(pageLength = 15))
+```
+
+``` {2+2}
 ```
 
 ## 2013 NC Birth Cohort Exposure Characteristics
